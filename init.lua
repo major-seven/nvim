@@ -14,8 +14,8 @@ if not vim.loop.fs_stat(lazypath) then
 end
 vim.opt.rtp:prepend(lazypath)
 
+require "tunnelvision-theme"
 require("lazy").setup({
-	"major-seven/alabaster_less.nvim",
 
 	{
 		"nvim-lualine/lualine.nvim",
@@ -161,7 +161,6 @@ require("toggleterm").setup({
 	autochdir = true,
 	direction = "float",
 })
-vim.cmd.colorscheme("alabaster_less")
 
 
 -------------------------------------------------------------------------------
