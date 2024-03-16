@@ -25,6 +25,7 @@ require("lazy").setup({
 		"nvim-telescope/telescope.nvim",
 		dependencies = { "nvim-lua/plenary.nvim" }
 	},
+	'nvim-telescope/telescope-ui-select.nvim',
 	"nvim-tree/nvim-tree.lua",
 
 	"natecraddock/workspaces.nvim",
@@ -56,7 +57,16 @@ require("lazy").setup({
 
 	"lewis6991/gitsigns.nvim",
 	{ 'numToStr/Comment.nvim', lazy = false, },
-	'rebelot/terminal.nvim'
+	{
+		'akinsho/toggleterm.nvim',
+		version = "*",
+		opts = {
+			autochdir = true,
+			direction = "float",
+
+		},
+		lazy = true,
+	},
 })
 
 
@@ -66,17 +76,30 @@ require("lazy").setup({
 
 -- Workspaces
 require("sessions").setup({
+	events = { "VimLeavePre", "BufEnter" },
 	session_filepath = vim.fn.stdpath("data") .. "/sessions",
 	absolute = true,
 })
+
 require("workspaces").setup({
+	cd_type = "global",
+	auto_open = false,
+	path = vim.fn.stdpath("data") .. "/workspaces",
 	hooks = {
 		-- open_pre = { "wall", "SessionsSave", "silent %bdelete!" },
 		open_pre = function()
+			-- vim.cmd("wall")
+			-- require("sessions").save(nil, { silent = true })
+			-- vim.cmd("%bd!")
+		end,
+		remove = function()
 			vim.cmd("wall")
 			require("sessions").save(nil, { silent = true })
+			-- vim.cmd("bd")
+			vim.cmd("%bd!")
 		end,
 		open = function()
+			-- vim.cmd("%bd!")
 			require("sessions").load(nil, { silent = true })
 		end,
 	}
@@ -86,9 +109,16 @@ require("telescope").setup({
 	extensions = {
 		workspaces = {
 			-- keep insert mode after selection in the picker, default is false
-			keep_insert = true,
+			-- keep_insert = true,
 		}
 	}
+	-- extensions = {
+	-- 	project = {
+	-- 		on_project_selected = function(prompt_bufnr)
+	-- 			project_actions.change_working_directory(prompt_bufnr, false)
+	-- 		end
+	-- 	}
+	-- }
 })
 vim.g.loaded_netrw = 1
 vim.g.loaded_netrwPlugin = 1
@@ -127,12 +157,9 @@ vim.api.nvim_create_autocmd("LspAttach", {
 
 require('gitsigns').setup()
 require("Comment").setup()
-require("terminal").setup({
-	{
-		layout = { open_cmd = "botright new" },
-		cmd = { vim.o.shell },
-		autoclose = false,
-	}
+require("toggleterm").setup({
+	autochdir = true,
+	direction = "float",
 })
 vim.cmd.colorscheme("alabaster_less")
 
@@ -141,7 +168,7 @@ vim.cmd.colorscheme("alabaster_less")
 -- Remaps
 -------------------------------------------------------------------------------
 
--- ergonomics
+-- Ergonomics
 vim.g.mapleader = " "
 vim.keymap.set({ "n", "x" }, "U", "<c-r>")
 vim.keymap.set({ "n", "x" }, "gy", '"+y')
@@ -153,7 +180,7 @@ vim.keymap.set({ "n", "x" }, ";", ",")
 vim.keymap.set({ "n", "x" }, "£", "0bw")
 vim.keymap.set({ "n", "x" }, "<leader>s", "<cmd>wa<cr>")
 
--- splits
+-- Splits
 vim.keymap.set("n", "<leader>wk", ":split<cr>")
 vim.keymap.set("n", "<leader>wj", ":split<cr><c-w>j<cr>")
 vim.keymap.set("n", "<leader>wh", ":vsplit<cr>")
@@ -164,6 +191,7 @@ vim.keymap.set("n", "<leader>h", "<c-w>h<cr>")
 vim.keymap.set("n", "<leader>j", "<c-w>j<cr>")
 vim.keymap.set("n", "<leader>k", "<c-w>k<cr>")
 vim.keymap.set("n", "<leader>l", "<c-w>l<cr>")
+vim.keymap.set("n", "=", "<c-w>=")
 
 -- Telescope
 local builtin = require("telescope.builtin")
@@ -177,11 +205,15 @@ vim.keymap.set({ "n", "x" }, "<leader>fs", "<cmd>NvimTreeToggle<cr>")
 
 -- Workspaces
 vim.keymap.set("n", "<leader>p", "<cmd>Telescope workspaces<cr>")
+-- vim.keymap.set("n", "<leader>p", ":lua require'telescope'.extensions.project.project{}<CR>")
 
 -- LSP
 vim.keymap.set("n", "gd", builtin.lsp_definitions, {})
 vim.keymap.set("n", "gi", builtin.lsp_implementations, {})
 vim.keymap.set("n", "gr", builtin.lsp_references, {})
+vim.keymap.set("n", "ga", "<cmd>lua vim.lsp.buf.code_action()<cr>", {})
+vim.keymap.set("n", "gt", "<cmd>lua vim.lsp.buf.hover()<cr>", {})
+
 vim.keymap.set("n", "<leader>rn", "<cmd>lua vim.lsp.buf.rename()<cr>")
 vim.keymap.set("n", "<leader><leader>", vim.lsp.buf.format, {})
 
@@ -196,7 +228,7 @@ end)
 
 -- Terminal
 vim.keymap.set("t", "<esc>", "<C-\\><C-n>")
-vim.keymap.set("n", "<leader>tt", "<cmd>TermToggle<cr><cr>")
+vim.keymap.set("n", "<leader>tt", "<cmd>ToggleTerm<cr><cr>")
 vim.keymap.set("n", "<leader>tk", "<cmd>TermKill<cr>y<cr>")
 vim.keymap.set("n", "<leader>tq", "<cmd>TermClose<cr>")
 
@@ -222,6 +254,7 @@ vim.opt.cursorline = true
 vim.opt.scrolloff = 8
 vim.opt.updatetime = 50
 vim.opt.termguicolors = true
+vim.opt.hidden = false
 
 -- don't continue comments on newlines
 vim.api.nvim_create_autocmd({ "FileType" }, { command = "set formatoptions-=cro" })
@@ -235,6 +268,7 @@ vim.opt.undodir = vim.fn.stdpath("data") .. "/tmp/undo"
 vim.opt.swapfile = true
 vim.opt.backup = true
 vim.opt.undofile = true
+
 
 
 -------------------------------------------------------------------------------
